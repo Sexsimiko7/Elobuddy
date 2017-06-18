@@ -28,7 +28,6 @@ namespace SexsiXinZhao
             Menu();
             LoadSpells();
 
-            Chat.Print("TRAdana Army - Allahu Akbar", System.Drawing.Color.DeepSkyBlue);
 
             Interrupter.OnInterruptableSpell += Interrupter_OnInterruptableSpell;
             Game.OnUpdate += Game_OnUpdate;
