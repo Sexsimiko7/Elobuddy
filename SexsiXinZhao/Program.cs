@@ -72,7 +72,7 @@ namespace SexsiXinZhao
             {
                 Console.WriteLine(e.Sender);
                 if (!e.Sender.HasBuff("xenzhaointimidate"))
-                    R.Cast(e.Sender);
+                    R.Cast();
             }
         }
 
