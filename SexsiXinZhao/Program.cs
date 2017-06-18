@@ -246,14 +246,14 @@ namespace SexsiXinZhao
                         {
                             if (Enemy.HasBuff("xenzhaointimidate"))
                             {
-                                R.Cast(Enemy);
+                                R.Cast();
 
                             }
 
                         }
                         if (Enemy.TotalShieldHealth() < RDamage)
                         {
-                            R.Cast(Enemy);
+                            R.Cast();
 
                         }
 
