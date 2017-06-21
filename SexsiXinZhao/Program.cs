@@ -240,7 +240,7 @@ namespace SexsiXinZhao
                     }
                     if (ComboR.CurrentValue && R.IsReady())
                     {
-                        var RDamage = E.GetSpellDamage(Enemy);
+                        var RDamage = R.GetSpellDamage(Enemy);
                         if (Player.CountEnemyChampionsInRange(R.Range) >= ComboRmin.CurrentValue)
                         {
                             if (Enemy.HasBuff("xenzhaointimidate"))
