@@ -118,7 +118,7 @@ namespace SexsiCaitlyn
 
             }
 
-            if (Orbwalker.ActiveModesFlags.HasFlag(Orbwalker.ActiveModes.LastHit) && TrapEnemyCastHarass.CurrentValue < 2 && sender.IsEnemy && sender is AIHeroClient && sender.IsValidTarget(750))
+            if (Orbwalker.ActiveModesFlags.HasFlag(Orbwalker.ActiveModes.Harass) && TrapEnemyCastHarass.CurrentValue < 2 && sender.IsEnemy && sender is AIHeroClient && sender.IsValidTarget(750))
             {
                 if (Environment.TickCount - LastTrapTime > WDelay.CurrentValue)
                 {
