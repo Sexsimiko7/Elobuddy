@@ -318,8 +318,8 @@ namespace SexsiPrediction.Skillshots
                         }
                     }
                     else
-                    {
-                        var vmc = Geometry.VectorMovementCollision(
+                    {                
+                        var vmc = SexsiPredictioner.SexsiPrediction.Util.Geometry.VectorMovementCollision(
                             (Vector2)dash.StartPosition,
                             (Vector2)dash.EndPosition,
                             dash.Speed,
@@ -327,12 +327,12 @@ namespace SexsiPrediction.Skillshots
                             speed,
                             GetTime() - dash.StartTime + delay);
 
-                        //if (Math.Abs((sbyte)vmc) > float.Epsilon) // TODO Check if this is correct
-                        //{
-                        //    position = new Vector3(vmc.Position.X, 0, vmc.Position.Y);
-                        //    canHit = true;
-                        //}
-                        //else
+                        if (Math.Abs(vmc.Time) > float.Epsilon) // TODO Check if this is correct
+                        {
+                            position = new Vector3(vmc.Position.X, 0, vmc.Position.Y);
+                            canHit = true;
+                        }
+                        else
                         {
                             position = dash.EndPosition;
                             canHit = unit.MoveSpeed * (delay + Vector3.Distance(from, position) / speed
@@ -603,7 +603,7 @@ namespace SexsiPrediction.Skillshots
                 if (this.PathAnalysis[unit.NetworkId].Count > 4)
                 {
                     Console.WriteLine("Path count > 4");
-                    return new PredictedTargetPosition() { CastPosition = unit.Position, UnitPosition = unit.Position };
+                    //return new PredictedTargetPosition() { CastPosition = unit.Position, UnitPosition = unit.Position };
                 }
 
                 if (this.PathAnalysis[unit.NetworkId].Count > 3)
