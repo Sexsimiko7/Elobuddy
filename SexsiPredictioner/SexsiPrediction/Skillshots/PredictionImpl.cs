@@ -319,7 +319,7 @@ namespace SexsiPrediction.Skillshots
                     }
                     else
                     {                
-                        var vmc = SexsiPredictioner.SexsiPrediction.Util.Geometry.VectorMovementCollision(
+                        var vmc = Util.Geometry.VectorMovementCollision(
                             (Vector2)dash.StartPosition,
                             (Vector2)dash.EndPosition,
                             dash.Speed,

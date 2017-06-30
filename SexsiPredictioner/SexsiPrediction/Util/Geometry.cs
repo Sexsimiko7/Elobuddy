@@ -1,7 +1,7 @@
 ﻿using System;
 using SharpDX;
 
-namespace SexsiPredictioner.SexsiPrediction.Util
+namespace SexsiPrediction.Util
 {
     /// <summary>
     /// Class Geometry.
