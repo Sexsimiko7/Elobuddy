@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using EloBuddy;
+using EloBuddy.SDK;
 using EloBuddy.SDK.Enumerations;
 using EloBuddy.SDK.Events;
 using EloBuddy.SDK.Menu;
@@ -22,6 +23,12 @@ namespace SexsiPrediction
         }
 
         private static void Loading_OnLoadingComplete(EventArgs args)
+        {
+            Core.DelayAction(Menu, 5000);
+            
+        }
+
+        private static void Menu()
         {
             foreach (KeyValuePair<string, List<Menu>> keyValuePair in MainMenu.MenuInstances)
             {
@@ -55,7 +62,7 @@ namespace SexsiPrediction
                Unit = Player.Instance,
                SkillType = TypeConverter(input.Type)
             };
-            var sexsiOutput = Skillshots.Prediction.Instance.GetPrediction(sexsiInput);
+            var sexsiOutput = Skillshots.Prediction.Implementation.GetPrediction(sexsiInput);
             var output = new Prediction.Manager.PredictionOutput(input)
             {
                 CastPosition = sexsiOutput.CastPosition,
@@ -63,6 +70,7 @@ namespace SexsiPrediction
                 PredictedPosition = sexsiOutput.PredictedPosition
             };
             output.CollisionGameObjects.AddRange(sexsiOutput.Collisions);
+            Skillshots.Prediction.ResetImplementation();
             return output;
         }
 
