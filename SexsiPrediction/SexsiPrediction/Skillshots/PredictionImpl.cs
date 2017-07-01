@@ -154,13 +154,6 @@ namespace SexsiPrediction.Skillshots
             new Blink() { Name = "riftwalk", Range = 700, Delay = 0.25f, Delay2 = 0.8f }, //KassadinR
             new Blink() { Name = "gate", Range = 5500, Delay = 1.5f, Delay2 = 1.5f }, //Twisted fate R
             new Blink() { Name = "katarinae", Range = float.MaxValue, Delay = 0.25f, Delay2 = 0.8f }, //Katarinas E
-            /*new Blink()
-            {
-                Name = "elisespideredescent",
-                Range = float.MaxValue,
-                Delay = 0.25f,
-                Delay2 = 0.8f
-            }, //Elise E*/
 			new Blink() { Name = "elisespideredescent", Range = float.MaxValue, Delay = 0.25f, Delay2 = 0.8f }, //Elise E
             new Blink() { Name = "elisespidere", Range = float.MaxValue, Delay = 0.25f, Delay2 = 0.8f } //Elise insta E
         };
@@ -182,7 +175,7 @@ namespace SexsiPrediction.Skillshots
             Obj_AI_Base.OnNewPath += this.OnNewPath;
             Game.OnUpdate += this.OnUpdate;
             Obj_AI_Base.OnProcessSpellCast += this.OnProcessSpellCast;
-            AttackableUnit.OnGainVision += this.OnEnterVisible;
+            GameObject.OnGainVision += this.OnEnterVisible;
         }
 
         private void OnEnterVisible(GameObject sender, EventArgs eventArgs)

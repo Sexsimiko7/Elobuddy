@@ -49,11 +49,13 @@ namespace SexsiPrediction
         {
             if (input == null || input.Target == null)
             {
+                //Skillshots.Prediction.ResetImplementation();
                 throw new ArgumentNullException("input");
             }
+            Skillshots.Prediction.ResetImplementation();
             var sexsiInput = new PredictionInput
             {
-               CollisionObjects = CollisionTypesConverter(input.CollisionTypes),
+               CollisionObjects = input.CollisionTypes.Any() ? CollisionTypesConverter(input.CollisionTypes) : 0,
                Delay = input.Delay,
                Radius = input.Radius,
                Speed = input.Speed,
@@ -62,15 +64,16 @@ namespace SexsiPrediction
                Unit = Player.Instance,
                SkillType = TypeConverter(input.Type)
             };
-            var sexsiOutput = Skillshots.Prediction.Implementation.GetPrediction(sexsiInput);
+            var sexsiOutput = Skillshots.Prediction.Instance.GetPrediction(sexsiInput);
             var output = new Prediction.Manager.PredictionOutput(input)
             {
                 CastPosition = sexsiOutput.CastPosition,
                 HitChance = HitchanceConverter(sexsiOutput.HitChance),
                 PredictedPosition = sexsiOutput.PredictedPosition
             };
+
             output.CollisionGameObjects.AddRange(sexsiOutput.Collisions);
-            Skillshots.Prediction.ResetImplementation();
+
             return output;
         }
 
@@ -89,7 +92,7 @@ namespace SexsiPrediction
             }
         }
 
-        private static EloBuddy.SDK.Enumerations.HitChance HitchanceConverter(Skillshots.HitChance hitchance)
+        private static EloBuddy.SDK.Enumerations.HitChance HitchanceConverter(HitChance hitchance)
         {
             switch (hitchance)
             {
@@ -126,8 +129,6 @@ namespace SexsiPrediction
                         return CollisionableObjects.Minions;
                     case CollisionType.YasuoWall:
                         return CollisionableObjects.YasuoWall;
-                    default:
-                        return 0;
                 }
             }
             return 0;
