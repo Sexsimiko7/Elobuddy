@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("SexsiPrediction")]
+[assembly: AssemblyTitle("SexsiPredictioner")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("SexsiPrediction")]
+[assembly: AssemblyProduct("SexsiPredictioner")]
 [assembly: AssemblyCopyright("Copyright ©  2017")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("e1e182b2-aa4a-4457-9f33-b20c665ff8eb")]
+[assembly: Guid("ca17328c-a58c-4ad7-9fa1-b79a4341cfdb")]
 
 // Version information for an assembly consists of the following four values:
 //
