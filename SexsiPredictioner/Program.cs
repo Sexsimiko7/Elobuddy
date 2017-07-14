@@ -457,8 +457,8 @@ namespace SexsiPredictioner
             };
         #endregion
 
-        public static string[] HitchanceNameArray = { "Low", "Medium"};
-        public static HitChance[] HitchanceArray = { HitChance.Low, HitChance.Medium};
+        public static string[] HitchanceNameArray = { "Low", "Medium", "High [Beta]"};
+        public static HitChance[] HitchanceArray = { HitChance.Low, HitChance.Medium, HitChance.High};
 
         public static int GetPriority(string championName)
         {
@@ -583,7 +583,7 @@ namespace SexsiPredictioner
                         if (Spells[(int)args.Slot] == null)
                         return;
                         
-                        if (!skillshots[String.Format("{0}{1}", ObjectManager.Player.ChampionName, args.Slot)].Cast<EloBuddy.SDK.Menu.Values.CheckBox>().CurrentValue)
+                        if (!skillshots[string.Format("{0}{1}", ObjectManager.Player.ChampionName, args.Slot)].Cast<EloBuddy.SDK.Menu.Values.CheckBox>().CurrentValue)
                         return;
                         
                     if (handleEvent[(int)args.Slot])

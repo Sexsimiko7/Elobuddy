@@ -1,7 +1,5 @@
-﻿
-using System.Collections.Generic;
-using EloBuddy;
-using EloBuddy.SDK.Enumerations;
+﻿using System.Collections.Generic;
+using EloBuddy;                   
 using SharpDX;
 
 namespace SexsiPrediction.Skillshots

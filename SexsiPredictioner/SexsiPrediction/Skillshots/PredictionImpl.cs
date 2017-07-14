@@ -2,11 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using EloBuddy;
-using EloBuddy.SDK;      
+using EloBuddy.SDK;
+using EloBuddy.SDK.Utils;
 using SexsiPrediction.Collision;
 using SexsiPrediction.Extensions;
 using SexsiPrediction.Util;
 using SharpDX;
+using Geometry = SexsiPrediction.Util.Geometry;
 
 namespace SexsiPrediction.Skillshots
 {
@@ -120,7 +122,6 @@ namespace SexsiPrediction.Skillshots
             new SpellInfo() { Name = "monkeykingnimbus", Duration = 0.25f }, //wukong q
             new SpellInfo() { Name = "xenzhaosweep", Duration = 0.25f }, //xin xhao q
             new SpellInfo() { Name = "yasuodashwrapper", Duration = 0.25f }, //yasuo e
-
         };
 
         private List<SpellInfo> Spells { get; } = new List<SpellInfo>()
@@ -154,14 +155,7 @@ namespace SexsiPrediction.Skillshots
             new Blink() { Name = "riftwalk", Range = 700, Delay = 0.25f, Delay2 = 0.8f }, //KassadinR
             new Blink() { Name = "gate", Range = 5500, Delay = 1.5f, Delay2 = 1.5f }, //Twisted fate R
             new Blink() { Name = "katarinae", Range = float.MaxValue, Delay = 0.25f, Delay2 = 0.8f }, //Katarinas E
-            /*new Blink()
-            {
-                Name = "elisespideredescent",
-                Range = float.MaxValue,
-                Delay = 0.25f,
-                Delay2 = 0.8f
-            }, //Elise E*/
-			new Blink() { Name = "elisespideredescent", Range = float.MaxValue, Delay = 0.25f, Delay2 = 0.8f }, //Elise E
+            new Blink() { Name = "elisespideredescent", Range = float.MaxValue, Delay = 0.25f, Delay2 = 0.8f }, //Elise E
             new Blink() { Name = "elisespidere", Range = float.MaxValue, Delay = 0.25f, Delay2 = 0.8f } //Elise insta E
         };
 
@@ -212,9 +206,9 @@ namespace SexsiPrediction.Skillshots
                 {
                     if (e.SData.Name.ToLower() == spell.Name)
                     {
-                        var landingPos = Vector3.Distance(sender.Position, e.End) < spell.Range
+                        var landingPos = Vector3.Distance(sender.ServerPosition, e.End) < spell.Range
                             ? e.End
-                            : sender.Position + spell.Range * Vector3.Normalize(e.End - sender.Position);
+                            : sender.ServerPosition + spell.Range * Vector3.Normalize(e.End - sender.ServerPosition);
 
                         this.TargetsDashing[sender.NetworkId] = new Dash()
                         {
@@ -222,7 +216,7 @@ namespace SexsiPrediction.Skillshots
                             Duration = spell.Delay,
                             EndTime = GetTime() + spell.Delay,
                             EndTime2 = GetTime() + spell.Delay2,
-                            StartPosition = sender.Position,
+                            StartPosition = sender.ServerPosition,
                             EndPosition = landingPos
                         };
                         return;
@@ -233,7 +227,7 @@ namespace SexsiPrediction.Skillshots
                 {
                     if (e.SData.Name.ToLower() == spell.Name)
                     {
-                        Console.WriteLine("WHY IS THIS CALLED");
+                        Logger.Warn("WHY IS THIS CALLED");
                         this.DontShoot[sender.NetworkId] = GetTime() + spell.Duration;
                         return;
                     }
@@ -259,7 +253,7 @@ namespace SexsiPrediction.Skillshots
         {
             if (this.TargetsImmobile.ContainsKey(unit.NetworkId))
             {
-                var extraDelay = Math.Abs(speed - float.MaxValue) < float.Epsilon ? 0 : Vector3.Distance(from, unit.Position) / speed;
+                var extraDelay = Math.Abs(speed - float.MaxValue) < float.Epsilon ? 0 : Vector3.Distance(from, unit.ServerPosition) / speed;
 
                 if (this.TargetsImmobile[unit.NetworkId] > GetTime() + delay + extraDelay
                     && spellType == SkillType.Circle)
@@ -267,8 +261,8 @@ namespace SexsiPrediction.Skillshots
                     return new ImmobileResult()
                     {
                         Immobile = true,
-                        UnitPosition = unit.Position,
-                        CastPosition = unit.Position + radius / 3f * Vector3.Normalize(from - unit.Position)
+                        UnitPosition = unit.ServerPosition,
+                        CastPosition = unit.ServerPosition + radius / 3f * Vector3.Normalize(from - unit.ServerPosition)
                     };
                 }
 
@@ -278,13 +272,13 @@ namespace SexsiPrediction.Skillshots
                     return new ImmobileResult()
                     {
                         Immobile = true,
-                        UnitPosition = unit.Position,
-                        CastPosition = unit.Position
+                        UnitPosition = unit.ServerPosition,
+                        CastPosition = unit.ServerPosition
                     };
                 }
             }
 
-            return new ImmobileResult() { Immobile = false, UnitPosition = unit.Position, CastPosition = unit.Position };
+            return new ImmobileResult() { Immobile = false, UnitPosition = unit.ServerPosition, CastPosition = unit.ServerPosition };
         }
 
         private DashResult IsDashing(Obj_AI_Base unit, float delay, float radius, float speed, Vector3 from)
@@ -318,8 +312,8 @@ namespace SexsiPrediction.Skillshots
                         }
                     }
                     else
-                    {                
-                        var vmc = Util.Geometry.VectorMovementCollision(
+                    {
+                        var vmc = Geometry.VectorMovementCollision(
                             (Vector2)dash.StartPosition,
                             (Vector2)dash.EndPosition,
                             dash.Speed,
@@ -416,7 +410,7 @@ namespace SexsiPrediction.Skillshots
                 {
                     var p1 = this.PathAnalysis[sender.NetworkId][this.PathAnalysis[sender.NetworkId].Count - 2].Position;
                     var p2 = this.PathAnalysis[sender.NetworkId][this.PathAnalysis[sender.NetworkId].Count - 1].Position;
-                    var angle = ((Vector2)sender.Position).AngleBetween((Vector2)p2, (Vector2)p1);
+                    var angle = ((Vector2)sender.ServerPosition).AngleBetween((Vector2)p2, (Vector2)p1);
 
                     if (angle > 20)
                     {
@@ -440,7 +434,7 @@ namespace SexsiPrediction.Skillshots
                     this.TargetsWaypoints[sender.NetworkId].Add(
                         new WaypointInfo()
                         {
-                            UnitPosition = sender.Position,
+                            UnitPosition = sender.ServerPosition,
                             Waypoint = waypointsToAdd.Last(),
                             Time = GetTime(),
                             N = waypointsToAdd.Count
@@ -456,9 +450,8 @@ namespace SexsiPrediction.Skillshots
                     {
                         StartPosition = e.Path[0],
                         EndPosition = e.Path.Last(),
-                        Speed = /*1000*/ e.Speed, // todo proper api
+                        Speed = e.Speed,
                         StartTime = GetTime() - Game.Ping / 2000f,
-
                     };
 
                     var dist = Vector3.Distance(dash.StartPosition, dash.EndPosition);
@@ -474,12 +467,9 @@ namespace SexsiPrediction.Skillshots
 
         private List<Vector3> GetCurrentWaypoints(Obj_AI_Base @object)
         {
-            // todo  .Path might have the current position, didnt check :Roto2:
-            var result = new List<Vector3> { @object.Position };
-
+            var result = new List<Vector3> { @object.ServerPosition };
             if (@object.Path.Length > 0)
             {
-
                 result.AddRange(@object.Path);
             }
 
@@ -495,7 +485,7 @@ namespace SexsiPrediction.Skillshots
             GameObject from,
             bool collision)
         {
-            return this.GetCastPosition(unit, delay, radius, range, speed, from.Position, collision, SkillType.Line);
+            return this.GetCastPosition(unit, delay, radius, range, speed, ((Obj_AI_Base)from).ServerPosition, collision, SkillType.Line);
         }
 
         /// <summary>
@@ -550,7 +540,7 @@ namespace SexsiPrediction.Skillshots
 
                 if (mec.Radius <= radius + unit.BoundingRadius - 8)
                 {
-                    return new PredictionOutput
+                    return new PredictionOutput()
                     {
                         CastPosition = new Vector3(
                             mec.Center.X,
@@ -602,8 +592,9 @@ namespace SexsiPrediction.Skillshots
             {
                 if (this.PathAnalysis[unit.NetworkId].Count > 4)
                 {
-                    Console.WriteLine("Path count > 4");
-                    //return new PredictedTargetPosition() { CastPosition = unit.Position, UnitPosition = unit.Position };
+                    Logger.Warn("Path count > 4");
+
+                    //return new PredictedTargetPosition(){CastPosition = unit.ServerPosition, UnitPosition = unit.ServerPosition};
                 }
 
                 if (this.PathAnalysis[unit.NetworkId].Count > 3)
@@ -615,17 +606,17 @@ namespace SexsiPrediction.Skillshots
 
             var spot = Vector3.Zero;
 
-            var p90x = second.IsZero ? unit.Position : second;
-            var pathPot = unit.MoveSpeed * (Vector3.Distance(Player.Position, p90x) / speed + delay);
+            var p90x = second.IsZero ? unit.ServerPosition : second;
+            var pathPot = unit.MoveSpeed * (Vector3.Distance(Player.ServerPosition, p90x) / speed + delay);
 
             if (unit.Path.Length < 3)
             {
-                var v = unit.Position + Vector3.Normalize(unit.Path.Last() - unit.Position)
+                var v = unit.ServerPosition + Vector3.Normalize(unit.Path.Last() - unit.ServerPosition)
                         * (pathPot - unit.BoundingRadius + 10);
 
-                if (Vector3.Distance(unit.Position, v) > 1)
+                if (Vector3.Distance(unit.ServerPosition, v) > 1)
                 {
-                    if (Vector3.Distance(unit.Path.Last(), unit.Position) >= Vector3.Distance(unit.Position, v))
+                    if (Vector3.Distance(unit.Path.Last(), unit.ServerPosition) >= Vector3.Distance(unit.ServerPosition, v))
                     {
                         spot = v;
                     }
@@ -660,24 +651,22 @@ namespace SexsiPrediction.Skillshots
                         {
                             return new PredictedTargetPosition() { UnitPosition = spot, CastPosition = spot };
                         }
-                        else
-                        {
-                            return this.CalculateTargetPosition(unit, delay, radius, speed, from, type, spot);
-                        }
+
+                        return this.CalculateTargetPosition(unit, delay, radius, speed, @from, type, spot);
                     }
                 }
 
-                if (Vector3.Distance(unit.Position, unit.Path.Last()) > unit.BoundingRadius)
+                if (Vector3.Distance(unit.ServerPosition, unit.Path.Last()) > unit.BoundingRadius)
                 {
                     spot = unit.Path.Last();
                 }
                 else
                 {
-                    spot = unit.Position;
+                    spot = unit.ServerPosition;
                 }
             }
 
-            spot = spot.IsZero ? unit.Position : spot;
+            spot = spot.IsZero ? unit.ServerPosition : spot;
 
             if (!second.IsZero)
             {
@@ -696,11 +685,12 @@ namespace SexsiPrediction.Skillshots
 
             range = Math.Abs(range) < float.Epsilon ? float.MaxValue : range - 15;
             radius = Math.Abs(radius) < float.Epsilon ? 1 : radius + this.GetHitBox(unit) - 4;
-            from = from.IsZero ? Player.Position : from;
+            from = from.IsZero ? Player.ServerPosition : from;
 
-            Console.WriteLine("From: {0} | Player Pos: {1}", from, Player.Position);
+            Logger.Info("From: {0} | Player Pos: {1}", from, Player.ServerPosition);
+            
 
-            var isFromPlayer = Vector3.DistanceSquared(from, Player.Position) < 50 * 50;
+            var isFromPlayer = Vector3.DistanceSquared(from, Player.ServerPosition) < 50 * 50;
             delay = delay + (0.07f + Game.Ping / 2000f);
 
             Vector3 position;
@@ -723,15 +713,20 @@ namespace SexsiPrediction.Skillshots
 
                 if (this.DontShoot[unit.NetworkId] > GetTime())
                 {
-                    Console.WriteLine("{0} > {1}", this.DontShoot[unit.NetworkId], GetTime());
-                    position = unit.Position;
-                    castPosition = unit.Position;
+
+                    Logger.Info("{0} > {1}", this.DontShoot[unit.NetworkId], GetTime());
+                    
+                    position = unit.ServerPosition;
+                    castPosition = unit.ServerPosition;
                     hitchance = 0;
 
                 }
                 else if (dashResult)
                 {
-                    Console.WriteLine("Target is dashing!");
+
+                    Logger.Info("Target is dashing!");
+                    
+
                     if (dashResult.CanHit)
                     {
                         hitchance = 5;
@@ -746,9 +741,9 @@ namespace SexsiPrediction.Skillshots
                 }
                 else if (this.DontShoot2[unit.NetworkId] > GetTime())
                 {
-                    Console.WriteLine("Dont shoot 2");
-                    position = unit.Position;
-                    castPosition = unit.Position;
+                    Logger.Info("Dont shoot 2");
+                    position = unit.ServerPosition;
+                    castPosition = unit.ServerPosition;
                     hitchance = 7;
                 }
                 else if (immobileResult.Immobile)
@@ -759,20 +754,22 @@ namespace SexsiPrediction.Skillshots
                 }
                 else
                 {
-                    Console.WriteLine("Analyze waypoints");
+
+                    Logger.Info("Analyze waypoints");
+                    
                     var wpa = this.AnalyzeWaypoints(unit, delay, radius, range, speed, from, type);
                     castPosition = wpa.CastPosition;
                     hitchance = (int)wpa.HitChance;
                     position = wpa.PredictedPosition;
-                    Console.WriteLine("Waypoints analysis hitchance result: {0}", hitchance);
-                }
+                    Logger.Info("Waypoints analysis hitchance result: {0}", hitchance);
 
+                }
             }
             if (isFromPlayer)
             {
                 if (type == SkillType.Line && Vector3.DistanceSquared(from, position) >= range * range)
                 {
-                    Console.WriteLine("Type == Line OOR. DS: {0} | Range^2: {1}", Vector3.DistanceSquared(from, position), range * range);
+                    // Logger.Info("Type == Line OOR. DS: {0} | Range^2: {1}", Vector3.DistanceSquared(from, position), range*range);
                     hitchance = 0;
                 }
 
@@ -783,7 +780,7 @@ namespace SexsiPrediction.Skillshots
 
                 if (Vector3.DistanceSquared(from, castPosition) > range * range)
                 {
-                    Console.WriteLine("V3 DS OOR. DS: {0} | Range^2: {1}", Vector3.DistanceSquared(from, castPosition), range * range);
+                    //Logger.Info("V3 DS OOR. DS: {0} | Range^2: {1}", Vector3.DistanceSquared(from, castPosition), range * range);
                     hitchance = 0;
                 }
             }
@@ -869,13 +866,12 @@ namespace SexsiPrediction.Skillshots
             }
 
             // todo slowed
-
             if (!position.IsZero && !castPosition.IsZero && ((radius / unit.MoveSpeed >= delay + Vector3.Distance(from, castPosition) / speed) || (radius / unit.MoveSpeed) >= delay + Vector3.Distance(from, position) / speed))
             {
                 hitchance = 3;
             }
 
-            if (((Vector2)@from).AngleBetween((Vector2)unit.Position, (Vector2)castPosition) > 60)
+            if (((Vector2)from).AngleBetween((Vector2)unit.ServerPosition, (Vector2)castPosition) > 60)
             {
                 hitchance = 1;
             }
@@ -883,11 +879,11 @@ namespace SexsiPrediction.Skillshots
             if (position.IsZero || castPosition.IsZero)
             {
                 hitchance = 1;
-                castPosition = unit.Position;
+                castPosition = unit.ServerPosition;
                 position = castPosition;
             }
 
-            if (Vector3.Distance(Player.Position, unit.Position) < 250 && unit.NetworkId != Player.NetworkId)
+            if (Vector3.Distance(Player.ServerPosition, unit.ServerPosition) < 250 && unit.NetworkId != Player.NetworkId)
             {
                 hitchance = 2;
                 calculatedTargetPosition = this.CalculateTargetPosition(unit, delay * 0.5f, radius, speed * 2, from, type);
@@ -903,12 +899,11 @@ namespace SexsiPrediction.Skillshots
             if (this.DontShootUntilNewWaypoints[unit.NetworkId])
             {
                 hitchance = 0;
-                castPosition = unit.Position;
+                castPosition = unit.ServerPosition;
                 position = castPosition;
             }
 
             return new PredictionOutput() { CastPosition = castPosition, PredictedPosition = position, HitChance = (HitChance)hitchance };
-
         }
 
         private float MaxAngle(GameObject unit, Vector3 currentWaypoint, float from)
@@ -916,7 +911,7 @@ namespace SexsiPrediction.Skillshots
             return this.GetWaypoints(unit.NetworkId, from)
                 .Select(
                     x => Vector2.Zero.AngleBetween(
-                        (Vector2)currentWaypoint - (Vector2)unit.Position,
+                        (Vector2)currentWaypoint - (Vector2)((Obj_AI_Base)unit).ServerPosition,
                         (Vector2)(x.Waypoint - x.UnitPosition)))
                 .Concat(new[] { 0f }).Max();
         }

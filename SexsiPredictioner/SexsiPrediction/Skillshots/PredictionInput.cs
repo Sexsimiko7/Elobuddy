@@ -8,7 +8,7 @@ using SexsiPrediction.Collision;
 using SharpDX;
 
 namespace SexsiPrediction.Skillshots
-{   
+{
     /// <summary>
     ///     The input parameters to calculate skillshot prediction.
     /// </summary>
@@ -19,7 +19,7 @@ namespace SexsiPrediction.Skillshots
         /// </summary>
         public PredictionInput()
         {
-            this.From = ObjectManager.Player.Position;
+            this.From = ObjectManager.Player.ServerPosition;
             this.RangeCheckFrom = this.From;
         }
 
