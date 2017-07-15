@@ -2,6 +2,7 @@
 using System.Linq;
 using EloBuddy;
 using EloBuddy.SDK;
+using EloBuddy.SDK.Utils;
 using SexsiPrediction.Skillshots;
 using SharpDX;
 using Prediction = SexsiPrediction.Skillshots.Prediction;
@@ -67,7 +68,7 @@ namespace SexsiPrediction.Collision
         {
             if (unit.NetworkId == minion.NetworkId)
             {
-                Console.WriteLine("Unit was minion in collision");
+                Logger.Warn("Unit was minion in collision");
                 return false;
             }
 

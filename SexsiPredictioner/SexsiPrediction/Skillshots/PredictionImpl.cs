@@ -39,7 +39,6 @@ namespace SexsiPrediction.Skillshots
             public Vector3 Waypoint { get; set; }
             public float Time { get; set; }
             public int N { get; set; }
-
         }
 
         private struct SpellInfo
@@ -227,7 +226,9 @@ namespace SexsiPrediction.Skillshots
                 {
                     if (e.SData.Name.ToLower() == spell.Name)
                     {
+
                         Logger.Warn("WHY IS THIS CALLED");
+                       
                         this.DontShoot[sender.NetworkId] = GetTime() + spell.Duration;
                         return;
                     }
@@ -593,7 +594,6 @@ namespace SexsiPrediction.Skillshots
                 if (this.PathAnalysis[unit.NetworkId].Count > 4)
                 {
                     Logger.Warn("Path count > 4");
-
                     //return new PredictedTargetPosition(){CastPosition = unit.ServerPosition, UnitPosition = unit.ServerPosition};
                 }
 
@@ -688,7 +688,6 @@ namespace SexsiPrediction.Skillshots
             from = from.IsZero ? Player.ServerPosition : from;
 
             Logger.Info("From: {0} | Player Pos: {1}", from, Player.ServerPosition);
-            
 
             var isFromPlayer = Vector3.DistanceSquared(from, Player.ServerPosition) < 50 * 50;
             delay = delay + (0.07f + Game.Ping / 2000f);
@@ -713,9 +712,8 @@ namespace SexsiPrediction.Skillshots
 
                 if (this.DontShoot[unit.NetworkId] > GetTime())
                 {
-
                     Logger.Info("{0} > {1}", this.DontShoot[unit.NetworkId], GetTime());
-                    
+
                     position = unit.ServerPosition;
                     castPosition = unit.ServerPosition;
                     hitchance = 0;
@@ -725,7 +723,6 @@ namespace SexsiPrediction.Skillshots
                 {
 
                     Logger.Info("Target is dashing!");
-                    
 
                     if (dashResult.CanHit)
                     {
@@ -754,15 +751,12 @@ namespace SexsiPrediction.Skillshots
                 }
                 else
                 {
-
                     Logger.Info("Analyze waypoints");
-                    
                     var wpa = this.AnalyzeWaypoints(unit, delay, radius, range, speed, from, type);
                     castPosition = wpa.CastPosition;
                     hitchance = (int)wpa.HitChance;
                     position = wpa.PredictedPosition;
                     Logger.Info("Waypoints analysis hitchance result: {0}", hitchance);
-
                 }
             }
             if (isFromPlayer)
@@ -928,8 +922,7 @@ namespace SexsiPrediction.Skillshots
 
         private float GetHitBox(Obj_AI_Base unit)
         {
-            // todo properhitbox
-            return 65;
+            return unit.BoundingRadius;
         }
 
         public PredictedTargetPosition CalculateTargetPosition(
