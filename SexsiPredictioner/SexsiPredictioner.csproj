@@ -62,27 +62,14 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SexsiPrediction\Collision\Collision.cs" />
     <Compile Include="SexsiPrediction\Collision\CollisionableObjects.cs" />
-    <Compile Include="SexsiPrediction\Events\Dash.cs" />
-    <Compile Include="SexsiPrediction\Extensions\UnitExtensions.cs" />
     <Compile Include="SexsiPrediction\Extensions\Vector2Extensions.cs" />
-    <Compile Include="SexsiPrediction\Extensions\Vector3Extensions.cs" />
-    <Compile Include="SexsiPrediction\Skillshots\AoE\AoEPrediction.cs" />
-    <Compile Include="SexsiPrediction\Skillshots\AoE\Circle.cs" />
-    <Compile Include="SexsiPrediction\Skillshots\AoE\Cone.cs" />
-    <Compile Include="SexsiPrediction\Skillshots\AoE\Line.cs" />
-    <Compile Include="SexsiPrediction\Skillshots\AoE\PossibleTarget.cs" />
     <Compile Include="SexsiPrediction\Skillshots\HitChance.cs" />
     <Compile Include="SexsiPrediction\Skillshots\IPrediction.cs" />
-    <Compile Include="SexsiPrediction\Skillshots\PathTracker.cs" />
     <Compile Include="SexsiPrediction\Skillshots\Prediction.cs" />
     <Compile Include="SexsiPrediction\Skillshots\PredictionImpl.cs" />
     <Compile Include="SexsiPrediction\Skillshots\PredictionInput.cs" />
     <Compile Include="SexsiPrediction\Skillshots\PredictionOutput.cs" />
-    <Compile Include="SexsiPrediction\Skillshots\SkillshotType.cs" />
     <Compile Include="SexsiPrediction\Skillshots\SkillType.cs" />
-    <Compile Include="SexsiPrediction\Skillshots\StoredPath.cs" />
-    <Compile Include="SexsiPrediction\Util\Cache\GameObjectEqualityComparer.cs" />
-    <Compile Include="SexsiPrediction\Util\Cache\GameObjects.cs" />
     <Compile Include="SexsiPrediction\Util\Geometry.cs" />
     <Compile Include="SexsiPrediction\Util\Mec.cs" />
   </ItemGroup>

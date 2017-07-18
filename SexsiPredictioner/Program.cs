@@ -22,14 +22,9 @@ using EloBuddy.Sandbox;
 using System.Net;
 using System.IO;
 using System.Windows.Forms;
-using LeagueSharp.Data.Enumerations;
-using SexsiPredictioner.SexsiPrediction.Skillshots;
 
 namespace SexsiPredictioner
 {
-    /// <summary>
-    ///     Class Spell.
-    /// </summary>
     public class Spell
     {
         #region Fields
@@ -52,9 +47,7 @@ namespace SexsiPredictioner
         {
             this.Slot = slot;
 
-
             Logger.Debug("{0} Spell Created", slot);
-
         }
 
         /// <summary>
@@ -118,7 +111,7 @@ namespace SexsiPredictioner
         ///     Gets or sets the hit chance.
         /// </summary>
         /// <value>The hit chance.</value>
-        public HitChance HitChance { get; set; }
+        public SexsiPrediction.Skillshots.HitChance HitChance { get; set; }
 
         /// <summary>
         ///     Gets or sets a value indicating whether this instance is charged spell.
@@ -131,19 +124,13 @@ namespace SexsiPredictioner
         /// </summary>
         /// <value><c>true</c> if this instance is charing; otherwise, <c>false</c>.</value>
         public bool IsCharging => this.Ready && (Player.HasBuff(this.ChargedBuffName)
-                                                 || Environment.TickCount - this.chargedCastedT < 300 + Game.Ping);
+                                                 || Core.GameTickCount - this.chargedCastedT < 300 + Game.Ping);
 
         /// <summary>
         ///     Gets or sets a value indicating whether this instance is skill shot.
         /// </summary>
         /// <value><c>true</c> if this instance is skill shot; otherwise, <c>false</c>.</value>
         public bool IsSkillShot { get; set; }
-
-        /// <summary>
-        ///     Gets or sets a value indicating whether this instance is a vector skillshot
-        /// </summary>
-        /// <value><c>true</c> if this instance is a vector skill shot; otherwise, <c>false</c>.</value>
-        public bool IsVectorSkillShot { get; set; }
 
         /// <summary>
         ///     Gets or sets the range.
@@ -162,14 +149,16 @@ namespace SexsiPredictioner
                 {
                     return this.ChargedMinRange + Math.Min(
                                this.ChargedMaxRange - this.ChargedMinRange,
-                               (Environment.TickCount - this.chargedCastedT) * (this.ChargedMaxRange - this.ChargedMinRange)
+                               (Core.GameTickCount - this.chargedCastedT) * (this.ChargedMaxRange - this.ChargedMinRange)
                                / this.ChargeDuration - 150);
                 }
 
                 return this.ChargedMaxRange;
             }
-
-            set => this.range = value;
+			set
+			{
+				this.range = value;
+			}
         }
 
         /// <summary>
@@ -194,7 +183,7 @@ namespace SexsiPredictioner
         ///     Gets or sets the type.
         /// </summary>
         /// <value>The type.</value>
-        public SkillshotType Type { get; set; }
+        public LeagueSharp.Data.Enumerations.SpellType /*EloBuddy.SDK.Enumerations.SkillShotType*/ /*SkillType*/ Type { get; set; }
 
         /// <summary>
         ///     Gets or sets the width.
@@ -204,7 +193,7 @@ namespace SexsiPredictioner
 
         #endregion
 
-        #region Properties   
+        #region Properties
 
         /// <summary>
         ///     Gets the player.
@@ -233,32 +222,16 @@ namespace SexsiPredictioner
                 return Player.Spellbook.CastSpell(this.Slot, target);
             }
 
-            if (this.IsVectorSkillShot)
-            {
-
-                Logger.Error("Vector skillshot should be cast using two positions");
-
-                return false;
-            }
-
-            var prediction =
-                Prediction.GetPrediction(this.GetPredictionInput(target));
+            var prediction = Prediction.Instance.GetPrediction(this.GetPredictionInput(target));
 
             if (prediction.HitChance < this.HitChance)
             {
                 return false;
             }
 
-            if (prediction.CollisionObjects.Count > 0 && this.Collision)
-            {
-                return false;
-            }
-
             if (this.IsChargedSpell)
             {
-                return this.IsCharging
-                    ? ShootChargedSpell(this.Slot, prediction.CastPosition)
-                    : this.StartCharging(prediction.CastPosition);
+                return this.IsCharging ? ShootChargedSpell(this.Slot, prediction.CastPosition) : this.StartCharging();
             }
 
             return Player.Spellbook.CastSpell(this.Slot, prediction.CastPosition);
@@ -277,60 +250,32 @@ namespace SexsiPredictioner
 
             if (this.IsSkillShot)
             {
-
                 Logger.Warn("{0} is a skillshot, but casted like a self-activated ability.", this.Slot);
-
             }
 
             return Player.Spellbook.CastSpell(this.Slot);
         }
 
         /// <summary>
-        ///     Casts the spell at the specified position.
+        ///     Casts the specified position.
         /// </summary>
         /// <param name="position">The position.</param>
         /// <returns><c>true</c> if XXXX, <c>false</c> otherwise.</returns>
         public bool Cast(Vector2 position)
         {
-            if (!this.Ready)
-            {
-                return false;
-            }
-
             return Player.Spellbook.CastSpell(
                 this.Slot,
                 new Vector3(position.X, NavMesh.GetHeightForPosition(position.X, position.Y), position.Y));
         }
 
         /// <summary>
-        ///     Casts the spell at the specified position.
+        ///     Casts the specified position.
         /// </summary>
         /// <param name="position">The position.</param>
         /// <returns><c>true</c> if XXXX, <c>false</c> otherwise.</returns>
         public bool Cast(Vector3 position)
         {
-            if (!this.Ready)
-            {
-                return false;
-            }
-
             return Player.Spellbook.CastSpell(this.Slot, position);
-        }
-
-        /// <summary>
-        ///     Casts a Vector spell at a specified start position to a specified end position.
-        /// </summary>
-        /// <param name="start">The start position.</param>
-        /// <param name="end">The end position.</param>
-        /// <returns><c>true</c> if XXXX, <c>false</c> otherwise.</returns>
-        public bool Cast(Vector3 start, Vector3 end)
-        {
-            if (!this.Ready)
-            {
-                return false;
-            }
-
-            return Player.Spellbook.CastSpell(this.Slot, start, end);
         }
 
         /// <summary>
@@ -350,10 +295,7 @@ namespace SexsiPredictioner
         /// <returns>PredictionOutput.</returns>
         public PredictionOutput GetPrediction(Obj_AI_Base target)
         {
-            return Prediction.GetPrediction(
-                this.GetPredictionInput(target),
-                true,
-                this.Collision);
+            return Prediction.Implementation.GetPrediction(this.GetPredictionInput(target));
         }
 
         /// <summary>
@@ -365,12 +307,13 @@ namespace SexsiPredictioner
         {
             return new PredictionInput()
             {
+                CollisionObjects = this.Collision ? CollisionableObjects.Minions : 0,
                 Delay = this.Delay,
                 Radius = this.Width,
                 Speed = this.Speed,
                 Range = this.Range,
-                Unit = target,
-                Collision = this.Collision
+                Target = target,
+                Unit = Player
             };
         }
 
@@ -401,26 +344,17 @@ namespace SexsiPredictioner
             {
                 if (sender.IsMe && args.SData.Name == this.ChargedSpellName)
                 {
-                    this.chargedCastedT = Environment.TickCount;
-                }
-            };
-
-            Spellbook.OnUpdateChargeableSpell += (sender, args) =>
-            {
-                if (sender.Owner.IsMe && Environment.TickCount - this.chargeReqSentT < 3000 && args.ReleaseCast)
-                {
-                    //args.Process = false;
+                    this.chargedCastedT = Core.GameTickCount;
                 }
             };
 
             Spellbook.OnCastSpell += (sender, args) =>
             {
-                if (args.Slot == this.Slot && Environment.TickCount - this.chargeReqSentT > 500 && this.IsCharging)
+                if (args.Slot == this.Slot && Core.GameTickCount - this.chargeReqSentT > 500 && this.IsCharging)
                 {
-                    this.Cast((Vector2) args.EndPosition);
+                    this.Cast((Vector2)args.EndPosition);
                 }
             };
-
 
             Logger.Debug(
                 "{0} Set as Charged -> Spell Name: {1}, Buff Name: {2}, Min Range: {3}, Max Range: {4}, Charge Duration: {5}s",
@@ -430,7 +364,6 @@ namespace SexsiPredictioner
                 minRange,
                 maxRange,
                 chargeDurationSeconds);
-
         }
 
         /// <summary>
@@ -441,16 +374,14 @@ namespace SexsiPredictioner
         /// <param name="speed">The speed.</param>
         /// <param name="collision">if set to <c>true</c> the spell has collision.</param>
         /// <param name="type">The type.</param>
-        /// <param name="vectorSkillshot">if set to <c>true</c> the spell has a start and end position. Ex. Viktor E and Rumble R</param>
         /// <param name="hitchance">The hitchance.</param>
         public void SetSkillshot(
             float delay,
             float width,
             float speed,
             bool collision,
-            SkillshotType type,
-            bool vectorSkillshot = false,
-            HitChance hitchance = HitChance.High)
+            LeagueSharp.Data.Enumerations.SpellType/*EloBuddy.SDK.Enumerations.SkillShotType*/ type,//SkillType type,
+            SexsiPrediction.Skillshots.HitChance hitchance = SexsiPrediction.Skillshots.HitChance.Low)
         {
             this.Delay = delay;
             this.Width = width;
@@ -458,7 +389,6 @@ namespace SexsiPredictioner
             this.Type = type;
             this.Collision = collision;
             this.IsSkillShot = true;
-            this.IsVectorSkillShot = vectorSkillshot;
             this.HitChance = hitchance;
 
             Logger.Debug(
@@ -479,26 +409,19 @@ namespace SexsiPredictioner
 
         private static bool ShootChargedSpell(SpellSlot slot, Vector3 position, bool releaseCast = true)
         {
-            var resultUpdate = Player.Spellbook.UpdateChargeableSpell(slot, position, releaseCast);
-
-            if (!releaseCast)
-            {
-                var resultCast = Player.Spellbook.CastSpell(slot, position);
-                return resultUpdate && resultCast;
-            }
-
-            return resultUpdate;
+            return Player.Spellbook.CastSpell(slot, position)
+                   && Player.Spellbook.UpdateChargeableSpell(slot, position, releaseCast);
         }
 
-        private bool StartCharging(Vector3 position)
+        private bool StartCharging()
         {
-            if (this.IsCharging || Environment.TickCount - this.chargeReqSentT <= 400 + Game.Ping)
+            if (this.IsCharging || Core.GameTickCount - this.chargeReqSentT <= 400 + Game.Ping)
             {
                 return false;
             }
 
-            this.chargeReqSentT = Environment.TickCount;
-            return Player.Spellbook.CastSpell(this.Slot, position);
+            this.chargeReqSentT = Core.GameTickCount;
+            return Player.Spellbook.CastSpell(this.Slot);
         }
 
         #endregion
@@ -534,8 +457,8 @@ namespace SexsiPredictioner
             };
         #endregion
 
-        public static string[] HitchanceNameArray = { "Low", "Medium", "High", "VeryHigh"};
-        public static HitChance[] HitchanceArray = { HitChance.Low, HitChance.Medium, HitChance.High, HitChance.VeryHigh};
+        public static string[] HitchanceNameArray = { "Low", "Medium", "High [Beta]"};
+        public static HitChance[] HitchanceArray = { HitChance.Low, HitChance.Medium, HitChance.High};
 
         public static int GetPriority(string championName)
         {
@@ -593,23 +516,8 @@ namespace SexsiPredictioner
         public static EloBuddy.SDK.Menu.Values.ComboBox Hitc;
 
         public static IReadOnlyList<SpellDatabaseEntry> Spells2 =
-            Data.Get<SpellDatabase>().Spells;
+            Data.Get<LeagueSharp.Data.DataTypes.SpellDatabase>().Spells;
 
-
-        public static SkillshotType SpellTypeConverter(SpellType type)
-        {
-            switch (type)
-            {
-                case SpellType.SkillshotCircle:
-                    return SkillshotType.Circle;
-                case SpellType.SkillshotCone:
-                    return SkillshotType.Cone;
-                case SpellType.SkillshotLine:
-                    return SkillshotType.Line;
-                default:
-                    return 0;
-            }
-        }
 
         public static void Initialize()
         {
@@ -626,7 +534,7 @@ namespace SexsiPredictioner
                 if (spell.ChampionName == ObjectManager.Player.CharData.BaseSkinName)
                 { 
                 Spells[(int)spell.Slot] = new Spell(spell.Slot, spell.Range);
-                Spells[(int)spell.Slot].SetSkillshot(spell.Delay / 1000f, spell.Radius, spell.MissileSpeed, spell.CollisionObjects.Any(), SpellTypeConverter(spell.SpellType));//Collisionable, spell.SpellType);
+                Spells[(int)spell.Slot].SetSkillshot(spell.Delay / 1000f, spell.Radius, spell.MissileSpeed, spell.CollisionObjects.Any(), spell.SpellType);//Collisionable, spell.SpellType);
                 skillshots.Add(String.Format("{0}{1}", spell.ChampionName, spell.Slot), new EloBuddy.SDK.Menu.Values.CheckBox("Convert Spell " + spell.Slot.ToString(), true));
                 }
             }
@@ -688,12 +596,12 @@ namespace SexsiPredictioner
 
                         if (enemy != null)
                         {
-                            PredictionInput input = Spells[(int)args.Slot].GetPredictionInput(enemy);
+                            SexsiPrediction.Skillshots.PredictionInput input = Spells[(int)args.Slot].GetPredictionInput(enemy);
 
                             if (input != null)
                             {
 
-                            var pred = Prediction.GetPrediction(input);
+                            var pred = SexsiPrediction.Skillshots.Prediction.Implementation.GetPrediction(input);
 
                             if ( !(pred.HitChance >= Utility.HitchanceArray[Hitc.SelectedIndex]) )
                             {

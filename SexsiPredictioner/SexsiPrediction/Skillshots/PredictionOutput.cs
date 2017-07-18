@@ -1,85 +1,66 @@
-﻿using System;
-using System.Collections.Generic;
-using EloBuddy;
-using SexsiPredictioner.SexsiPrediction.Extensions;
+﻿using System.Collections.Generic;
+using EloBuddy;                   
 using SharpDX;
 
 namespace SexsiPrediction.Skillshots
 {
     /// <summary>
-    ///     Prediction Output, contains the calculated data from the source prediction input.
+    /// Class PredictionOutput.
     /// </summary>
     public class PredictionOutput
     {
-        #region Fields
+        /// <summary>
+        ///     Gets or sets the prediction input.
+        /// </summary>
+        /// <value>
+        ///     The prediction input.
+        /// </value>
+        public PredictionInput Input { get; set; }
 
         /// <summary>
-        ///     Cast Predicted Position data in a 3D-Space given value.
+        ///     Gets or sets the collisions.
         /// </summary>
-        private Vector3 castPosition;
-
-        /// <summary>
-        ///     Unit Predicted Position data ina a 3D-Space given value.
-        /// </summary>
-        private Vector3 unitPosition;
-
-        #endregion
-
-        #region Public Properties
-
-        /// <summary>
-        ///     Gets or sets the data value which is declared for output data after calculation of how many Area-of-Effect
-        ///     targets will get hit by the prediction input source.
-        /// </summary>
-        public int AoeHitCount { get; set; }
-
-        /// <summary>
-        ///     Gets or sets the list of the targets that the spell will hit (only if Area of Effect was enabled).
-        /// </summary>
-        public List<AIHeroClient> AoeTargetsHit { get; set; } = new List<AIHeroClient>();
-
-        /// <summary>
-        ///     Gets the number of targets the skill-shot will hit (only if Area of Effect was enabled).
-        /// </summary>
-        public int AoeTargetsHitCount => Math.Max(this.AoeHitCount, this.AoeTargetsHit.Count);
-
-        /// <summary>
-        ///     Gets or sets the position where the skill-shot should be casted to increase the accuracy.
-        /// </summary>
-        public Vector3 CastPosition
-        {
-            get => this.castPosition.IsZero ? this.Input.Unit.ServerPosition : this.castPosition.FixHeight();
-            set => this.castPosition = value;
-        }
-
-        /// <summary>
-        ///     Gets or sets the collision objects list which the input source would collide with.
-        /// </summary>
-        public List<Obj_AI_Base> CollisionObjects { get; set; } = new List<Obj_AI_Base>();
+        /// <value>
+        ///     The collisions.
+        /// </value>
+        public IList<GameObject> Collisions { get; set; } = new List<GameObject>();
 
         /// <summary>
         ///     Gets or sets the hit chance.
         /// </summary>
-        public HitChance HitChance { get; set; } = HitChance.Impossible;
+        /// <value>
+        ///     The hit chance.
+        /// </value>
+        public HitChance HitChance { get; set; }
 
         /// <summary>
-        ///     Gets or sets where the unit is going to be when the skill-shot reaches his position.
+        ///     Gets or sets the cast position.
         /// </summary>
-        public Vector3 UnitPosition
-        {
-            get => this.unitPosition.IsZero ? this.Input.Unit.ServerPosition : this.unitPosition.FixHeight();
-            set => this.unitPosition = value;
-        }
-
-        #endregion
-
-        #region Properties
+        /// <value>
+        ///     The cast position.
+        /// </value>
+        public Vector3 CastPosition { get; set; }
 
         /// <summary>
-        ///     Gets or sets the input.
+        ///     Gets or sets the target's predicted position.
         /// </summary>
-        internal PredictionInput Input { get; set; }
+        /// <value>
+        ///     The target's predicted position.
+        /// </value>
+        public Vector3 PredictedPosition { get; set; }
 
-        #endregion
+        /// <summary>
+        ///     Gets a value indicating whether the <see cref="CastPosition" /> will collide with another GameObject.
+        /// </summary>
+        /// <value>
+        ///     <c>true</c> if the <see cref="CastPosition" /> will collide with another GameObject; otherwise, <c>false</c>.
+        /// </value>
+        public bool Collision => this.Collisions.Count > 0 || this.HitChance == HitChance.Collision;
+
+        /// <summary>
+        /// Gets or sets the number of targets hit by the area of effect spell.
+        /// </summary>
+        /// <value>The number of targets hit by the area of effect spell.</value>
+        public int AoeTargetsHit { get; set; }
     }
 }
