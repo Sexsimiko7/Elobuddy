@@ -720,8 +720,7 @@ namespace SexsiPrediction.Skillshots
 
                 }
                 else if (dashResult)
-                {
-
+                {  
                     Logger.Info("Target is dashing!");
 
                     if (dashResult.CanHit)

@@ -1,115 +1,151 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using EloBuddy;
-using EloBuddy.SDK;
-using EloBuddy.SDK.Utils;
+using EloBuddy.SDK;                    
 using SexsiPrediction.Skillshots;
-using SharpDX;
+using SharpDX;                                   
 using Prediction = SexsiPrediction.Skillshots.Prediction;
+using GameObjects = SexsiPredictioner.SexsiPrediction.Util.Cache.GameObjects;
 
 namespace SexsiPrediction.Collision
 {
-    /// <summary>
-    ///     Class Collision.
-    /// </summary>
-    public class Collision
+    public static class Collision
     {
-        #region Public Methods and Operators
+        #region Constructors and Destructors
 
-        /// <summary>
-        ///     Checks the collision.
-        /// </summary>
-        /// <param name="unit">The unit.</param>
-        /// <param name="position">The position.</param>
-        /// <param name="delay">The delay.</param>
-        /// <param name="radius">The radius.</param>
-        /// <param name="range">The range.</param>
-        /// <param name="speed">The speed.</param>
-        /// <param name="from">From.</param>
-        /// <returns><c>true</c> if there are minions that will collide with the projectile, <c>false</c> otherwise.</returns>
-        public static bool CheckCollision(
-            Obj_AI_Base unit,
-            Vector3 position,
-            float delay,
-            float radius,
-            float range,
-            float speed,
-            Vector3 from)
+        static Collision()
         {
-            return ObjectManager.Get<Obj_AI_Minion>()
-                .Where(
-                    x => x.IsValidTarget()
-                         && Vector3.Distance(x.Position, from)
-                         <= range + 500 * (delay + range / speed))
-                .Any(x => WillCollideWith(unit, x, position, delay, radius, range, speed, from));
+            Obj_AI_Base.OnProcessSpellCast += Obj_AI_Hero_OnProcessSpellCast;
         }
 
-        /// <summary>
-        ///     Checks the collision.
-        /// </summary>
-        /// <param name="unit">The unit.</param>
-        /// <param name="minion">The minion.</param>
-        /// <param name="position">The position.</param>
-        /// <param name="delay">The delay.</param>
-        /// <param name="radius">The radius.</param>
-        /// <param name="range">The range.</param>
-        /// <param name="speed">The speed.</param>
-        /// <param name="from">From.</param>
-        /// <returns><c>true</c> if the projectile will collide with the <paramref name="minion" />, <c>false</c> otherwise.</returns>
-        public static bool WillCollideWith( // todo yasuo E, braum W
-            Obj_AI_Base unit,
-            Obj_AI_Base minion,
-            Vector3 position,
-            float delay,
-            float radius,
-            float range,
-            float speed,
-            Vector3 from)
+        #endregion
+
+        #region Properties
+
+        private static int WallCastedT { get; set; }
+
+        private static Vector2 YasuoWallPosition { get; set; }
+
+        #endregion
+
+        #region Public Methods and Operators
+
+        public static List<Obj_AI_Base> GetCollision(List<Vector3> positions, PredictionInput input)
         {
-            if (unit.NetworkId == minion.NetworkId)
+            var result = new List<Obj_AI_Base>();
+
+            foreach (var position in positions)
             {
-                Logger.Warn("Unit was minion in collision");
-                return false;
-            }
-
-            // todo check if minion will die before missile hits
-
-            var waypoints = minion.Path.Select(x => (Vector2)x);
-            var mpos = (Vector2)(waypoints.Any()
-                ? Prediction.Instance.CalculateTargetPosition(minion, delay, radius, speed, from, SkillType.Line)
-                    .UnitPosition
-                : minion.Position);
-
-            if (Vector2.DistanceSquared((Vector2)from, mpos) <= range * range
-                && Vector2.DistanceSquared((Vector2)from, (Vector2)minion.Position) <= Math.Pow(range + 100, 2))
-            {
-                var buffer = 8;
-
-                if (minion.Type == GameObjectType.AIHeroClient)
+                if (input.CollisionObjects.HasFlag(CollisionableObjects.Minions))
                 {
-                    buffer += (int)minion.BoundingRadius; // todo make sure this is ~65
-                }
-
-                var from2D = (Vector2)from;
-
-                if (minion.Path.Length > 1)
-                {
-                    var vppol = mpos.ProjectOn(from2D, (Vector2)position);
-
-                    if (vppol.IsOnSegment && Vector2.DistanceSquared(mpos, vppol.SegmentPoint)
-                        <= Math.Pow(minion.BoundingRadius + radius + buffer, 2))
+                    foreach (var minion in GameObjects.EnemyMinions.Where(
+                        minion => minion.IsValidTarget(
+                            Math.Min(input.Range + input.Radius + 100, 2000),
+                            checkRangeFrom: input.RangeCheckFrom)))
                     {
-                        return true;
+                        input.Unit = minion;
+                        var minionPrediction = Prediction.GetPrediction(input, false, false);
+                        if (((Vector2)minionPrediction.UnitPosition).DistanceSquared(
+                                (Vector2)input.From,
+                                (Vector2)position,
+                                true) <= Math.Pow(input.Radius + 50 + minion.BoundingRadius, 2))
+                        {
+                            result.Add(minion);
+                        }
                     }
                 }
 
-                var vppol2 = ((Vector2)minion.Position).ProjectOn(from2D, (Vector2)position);
+                if (input.CollisionObjects.HasFlag(CollisionableObjects.Heroes))
+                {
+                    foreach (var hero in GameObjects.EnemyHeroes.Where(
+                        hero => hero.IsValidTarget(
+                            Math.Min(input.Range + input.Radius + 100, 2000),
+                            checkRangeFrom: input.RangeCheckFrom)))
+                    {
+                        input.Unit = hero;
+                        var prediction = Prediction.GetPrediction(input, false, false);
+                        if (((Vector2)prediction.UnitPosition).DistanceSquared(
+                                (Vector2)input.From,
+                                (Vector2)position,
+                                false) <= Math.Pow(input.Radius + 50 + hero.BoundingRadius, 2))
+                        {
+                            result.Add(hero);
+                        }
+                    }
+                }
 
-                return vppol2.IsOnSegment && Vector2.DistanceSquared((Vector2)minion.Position, vppol2.SegmentPoint)
-                       <= Math.Pow(minion.BoundingRadius + radius + buffer, 2);
+                if (input.CollisionObjects.HasFlag(CollisionableObjects.Walls))
+                {
+                }
+
+                if (!input.CollisionObjects.HasFlag(CollisionableObjects.YasuoWall))
+                {
+                    continue;
+                }
+
+                if (Environment.TickCount - WallCastedT > 4000)
+                {
+                    continue;
+                }
+
+                GameObject wall = null;
+                foreach (var gameObject in GameObjects.AllGameObjects.Where(
+                    x => x.IsValid && Regex.IsMatch(
+                             x.Name,
+                             "_w_windwall_enemy_0.\\.troy",
+                             RegexOptions.IgnoreCase)))
+                {
+                    wall = gameObject;
+                }
+
+                if (wall == null)
+                {
+                    break;
+                }
+
+                var level = wall.Name.Substring(wall.Name.Length - 6, 1);
+                var wallWidth = 300 + 50 * Convert.ToInt32(level);
+
+                var wallDirection = ((Vector2)wall.Position - YasuoWallPosition).Normalized().Perpendicular();
+                var wallStart = (Vector2)wall.Position + wallWidth / 2f * wallDirection;
+                var wallEnd = wallStart - wallWidth * wallDirection;
+
+                if (!wallStart.Intersection(wallEnd, (Vector2)position, (Vector2)input.From).Intersects)
+                {
+                    continue;
+                }
+
+                var t = Environment.TickCount
+                        + (wallStart.Intersection(wallEnd, (Vector2)position, (Vector2)input.From).Point
+                               .Distance(input.From) / input.Speed + input.Delay) * 1000;
+
+                if (t < WallCastedT + 4000)
+                {
+                    result.Add(ObjectManager.Player);
+                }
             }
 
-            return false;
+            return result.Distinct().ToList();
+        }
+
+        #endregion
+
+        #region Methods
+
+        private static void Obj_AI_Hero_OnProcessSpellCast(
+            Obj_AI_Base sender,
+            GameObjectProcessSpellCastEventArgs args)
+        {
+            if (!sender.IsValid || sender.Team == ObjectManager.Player.Team
+                || args.SData.Name != "YasuoWMovingWall")
+            {
+                return;
+            }
+
+            WallCastedT = Environment.TickCount;
+            YasuoWallPosition = (Vector2)sender.ServerPosition;
         }
 
         #endregion
