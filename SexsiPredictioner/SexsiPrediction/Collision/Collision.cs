@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using EloBuddy;
-using EloBuddy.SDK;                    
+using EloBuddy;                    
 using SexsiPrediction.Skillshots;
+using SexsiPredictioner.SexsiPrediction.Extensions;
+using SexsiPrediction.Extensions;
 using SharpDX;                                   
 using Prediction = SexsiPrediction.Skillshots.Prediction;
 using GameObjects = SexsiPredictioner.SexsiPrediction.Util.Cache.GameObjects;
